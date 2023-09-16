@@ -1,0 +1,24 @@
+from python import Python
+from benchmark import Benchmark
+from time import time_function
+
+fn main() raises:
+    let np = Python.import_module("numpy")
+    Python.add_to_path(".")
+    let py_att_mod: PythonObject = Python.import_module("attention")
+
+    # bmark = BenchMark()
+
+    # var Q = np.arange(10).reshape(2, 5)
+    let Q = np.ones((2, 3))
+    let K = Q
+    let V = Q
+
+    if py_att_mod:
+        let weights = py_att_mod.attention(Q, K, V)
+        print(weights)
+    else:
+        print("Unable to load 'attention' module")
+
+    # let t = time_function[py_att_mod.attention(Q, K, V)]()
+    # print("Time spent in function:", t, "ns")
