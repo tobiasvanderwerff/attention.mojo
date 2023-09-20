@@ -16,7 +16,9 @@ def attention(Q, K, V):
     return O
 
 def benchmark_attention_python(Q, K, V):
-    usecs = timeit(lambda: attention(Q, K, V), number=2) / 2 * 1000 * 1000
+    N = 10
+    usecs = timeit(lambda: attention(Q, K, V), number=N) / N * 1000 * 1000  # warmup
+    usecs = timeit(lambda: attention(Q, K, V), number=N) / N * 1000 * 1000
     print(f"Python res:\n{attention(Q, K, V)}")
     return usecs
 
