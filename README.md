@@ -10,7 +10,7 @@ CPU(s):     24
 Model name: Intel(R) Core(TM) i7-13700HX CPU @ 3.70GHz
 ```
 
-|        | time (us) |
-|--------|-----------|
-| Python | 58.32     |
-| Mojo   | 0.06      |
+|              | time (us) |
+|--------------|-----------|
+| Python/Numpy | 58.32     |
+| Mojo         | 0.06      |
