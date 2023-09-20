@@ -20,8 +20,16 @@ struct Matrix:
         return self.data.simd_load[1](y * self.cols + x)
 
     @always_inline
+    fn __getitem__(self, i: Int) -> Float32:
+        return self.data.simd_load[1](i)
+
+    @always_inline
     fn __setitem__(inout self, y: Int, x: Int, val: Float32):
         self.data.simd_store[1](y * self.cols + x, val)
+
+    @always_inline
+    fn __setitem__(inout self, i: Int, val: Float32):
+        self.data.simd_store[1](i, val)
 
     @always_inline
     fn zero(inout self):
@@ -45,12 +53,16 @@ struct Matrix:
         return self.rows * self.cols
 
     fn dump(self):
-        print("[")
+        print_no_newline("[")
         for y in range(self.rows):
-            print_no_newline("  [")
+            print_no_newline("[")
             for x in range(self.cols):
-                print_no_newline(self[y, x], ",")
-            print("],")
+                print_no_newline(self[y, x], "")
+
+            if y == self.rows - 1:
+                print_no_newline("]")
+            else:
+                print("],")
         print("]")
     
     fn __del__(owned self):
@@ -59,7 +71,7 @@ struct Matrix:
 
 fn matmul(A: Matrix, B: Matrix, inout C: Matrix):
     # C = A @ B
-    C.zero()
+    # C.zero()
     for m in range (A.rows):
         for n in range(B.cols):
             for k in range(A.cols):
@@ -67,7 +79,7 @@ fn matmul(A: Matrix, B: Matrix, inout C: Matrix):
 
 fn matmul_transposed(A: Matrix, B: Matrix, inout C: Matrix):
     # C = A @ B.T
-    C.zero()
+    # C.zero()
     for m in range (A.rows):
         for n in range(B.rows):
             for k in range(A.cols):
