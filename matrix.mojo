@@ -4,6 +4,8 @@ from memory.memory import memset_zero
 
 # alias f32 = DType.float32
 
+# TODO: try out the built-in Tensor type instead of a custom Matrix struct
+
 # TODO: use generic FP datatype
 struct Matrix:
     var rows: Int
@@ -13,7 +15,7 @@ struct Matrix:
     fn __init__(inout self, rows: Int, cols: Int):
         self.rows = rows
         self.cols = cols
-        self.data = DTypePointer[DType.float32].alloc(2*rows*cols)
+        self.data = DTypePointer[DType.float32].alloc(rows*cols)
 
     @always_inline
     fn __getitem__(self, y: Int, x: Int) -> Float32:

@@ -52,20 +52,26 @@ fn main() raises:
     # Call Python impl
     let out_py_np = py_att_mod.attention(Q_np, K_np, V_np)
 
-    # Call Mojo impl
-    attention_naive(out, Q, K, V)
-
     # Convert Python result to Mojo
     var out_py = Matrix(N, d)
     np_to_matrix(out_py, out_py_np, N*d)
 
-    # Compare the two results
-    for y in range(out.rows):
-        for x in range(out.cols):
-            let a = out[y, x]
-            let b = out_py[y, x]
-            if not assert_true(math.isclose(a, b, 0, 5e-5), "Fail"):
-                print("TEST FAILED: a != b at (", y, ",", x, ") (a =", a, ", b =", b, ")")
-                return 
+    # Call a separate function in order to instantiate a runtime, which is not
+    # possible within a "raises" function.
+    _compare(out_py, out, Q, K, V)
 
-    print("TEST PASSED")
+fn _compare(out_py: Matrix, inout out: Matrix, Q: Matrix, K: Matrix, V: Matrix):
+    # Call Mojo impl
+    with Runtime() as rt:
+        attention_naive(out, Q, K, V, rt)
+
+        # Compare the two results
+        for y in range(out.rows):
+            for x in range(out.cols):
+                let a = out[y, x]
+                let b = out_py[y, x]
+                if not assert_true(math.isclose(a, b, 0, 5e-5), "Fail"):
+                    print("TEST FAILED: a != b at (", y, ",", x, ") (a =", a, ", b =", b, ")")
+                    return 
+
+        print("TEST PASSED")

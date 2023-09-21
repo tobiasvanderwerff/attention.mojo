@@ -2,9 +2,13 @@ from python import Python
 from benchmark import Benchmark
 from time import time_function
 from testing import assert_true
+from runtime.llcl import Runtime
 
 from attention import attention_naive
 from matrix import Matrix
+
+
+alias DEBUG_PRINT_RES = False
 
 
 def np_to_matrix(inout m_mojo: Matrix, borrowed m_np: PythonObject, size: Int) -> None:
@@ -16,13 +20,11 @@ def np_to_matrix(inout m_mojo: Matrix, borrowed m_np: PythonObject, size: Int) -
 
 fn main() raises:
     let np = Python.import_module("numpy")
-    Python.add_to_path(".")
-    let py_att_mod: PythonObject = Python.import_module("attention")
 
-    # let N = 512
-    # let d = 256
-    let N = 3
-    let d = 2
+    let N = 512
+    let d = 512
+    # let N = 3
+    # let d = 2
 
     let Q_np = np.random.rand(N, d)
     let K_np = np.random.rand(N, d)
@@ -42,31 +44,41 @@ fn main() raises:
     # V.dump()
 
     # Benchmark Python/Numpy
+    Python.add_to_path(".")
+    let py_att_mod: PythonObject = Python.import_module("attention")
     var usecs_python: Float64 = 0.0
     if py_att_mod:
         # let usecs_python = py_att_mod.benchmark_attention_python(N, d)
-        usecs_python = py_att_mod.benchmark_attention_python(Q_np, K_np, V_np).to_float64()
+        usecs_python = py_att_mod.benchmark_attention_python(Q_np, K_np, V_np, DEBUG_PRINT_RES).to_float64()
     else:
         print("Unable to load 'attention' module")
+        return
+
+    benchmark_attention_mojo(out, Q, K, V, usecs_python)
 
     # let t = time_function[py_att_mod.attention(Q, K, V)]()
     # print("Time spent in function:", t, "ns")
 
-    @always_inline
-    @parameter
-    fn test_fn():
-        attention_naive(out, Q, K, V)
 
-    attention_naive(out, Q, K, V)
-    print("Mojo res:")
-    out.dump()
+fn benchmark_attention_mojo(inout out: Matrix, Q: Matrix, K: Matrix, V: Matrix, usecs_python: Float64):
+    with Runtime() as rt:
+        @always_inline
+        @parameter
+        fn test_fn():
+            attention_naive(out, Q, K, V, rt)
 
-    # Benchmark Mojo
-    let usecs_mojo = Float64(Benchmark().run[test_fn]()) / 1_000
+        attention_naive(out, Q, K, V, rt)
+        @parameter
+        if DEBUG_PRINT_RES:
+            print("Mojo res:")
+            out.dump()
 
-    print("\nNumpy/Python:\t", usecs_python, "us")
-    print("Mojo:\t\t", usecs_mojo, "us")
+        # Benchmark Mojo
+        let usecs_mojo = Float64(Benchmark().run[test_fn]()) / 1_000
 
-    # The line below is necessary to prevent the matrices from being freed
-    # before the benchmark run, which would otherwise lead to the program crashing.
-    _ = (out, Q, K, V)
+        print("\nNumpy/Python:\t", usecs_python, "us")
+        print("Mojo:\t\t", usecs_mojo, "us")
+
+        # The line below is necessary to prevent the matrices from being freed
+        # before the benchmark run, which would otherwise lead to the program crashing.
+        _ = (out, Q, K, V)

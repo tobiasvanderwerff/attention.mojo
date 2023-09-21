@@ -15,11 +15,12 @@ def attention(Q, K, V):
     O = P @ V
     return O
 
-def benchmark_attention_python(Q, K, V):
+def benchmark_attention_python(Q, K, V, print_res=False):
     N = 10
-    usecs = timeit(lambda: attention(Q, K, V), number=N) / N * 1000 * 1000  # warmup
+    # usecs = timeit(lambda: attention(Q, K, V), number=N) / N * 1000 * 1000  # warmup
     usecs = timeit(lambda: attention(Q, K, V), number=N) / N * 1000 * 1000
-    print(f"Python res:\n{attention(Q, K, V)}")
+    if print_res:
+        print(f"Python res:\n{attention(Q, K, V)}")
     return usecs
 
 # def benchmark_attention_python(N, d):
@@ -33,8 +34,8 @@ def benchmark_attention_python(Q, K, V):
 
 
 if __name__ == "__main__":
-    N = 512
-    d = 256
+    N = 32
+    d = 8
 
     usecs_python = benchmark_attention_python(N, d)
     print(usecs_python, "us")
