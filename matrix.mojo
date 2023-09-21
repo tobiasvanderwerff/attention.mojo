@@ -23,7 +23,7 @@ struct Matrix:
 
     @always_inline
     fn __getitem__(self, y: Int, x: Int) -> Float32:
-        return self.data.simd_load[1](y * self.cols + x)
+        return self.load[1](y, x)
 
     @always_inline
     fn __getitem__(self, i: Int) -> Float32:
@@ -31,7 +31,7 @@ struct Matrix:
 
     @always_inline
     fn __setitem__(inout self, y: Int, x: Int, val: Float32):
-        self.data.simd_store[1](y * self.cols + x, val)
+        self.store[1](y, x, val)
 
     @always_inline
     fn __setitem__(inout self, i: Int, val: Float32):
@@ -99,6 +99,8 @@ fn matmul_parallelized(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
 
 
 fn matmul_transposed(inout C: Matrix, A: Matrix, B: Matrix):
+    # TODO: for some reason this doesn't work if I parallelize it in the same
+    # way as done for the "matmul" function. Try to figure out why.
     # C = A @ B.T
     for m in range (A.rows):
         for n in range(B.rows):
