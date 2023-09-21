@@ -60,18 +60,19 @@ fn main() raises:
     # print("Time spent in function:", t, "ns")
 
 
+@always_inline
 fn benchmark_attention_mojo(inout out: Matrix, Q: Matrix, K: Matrix, V: Matrix, usecs_python: Float64):
     with Runtime() as rt:
+        @parameter
+        if DEBUG_PRINT_RES:
+            attention_naive(out, Q, K, V, rt)
+            print("Mojo res:")
+            out.dump()
+
         @always_inline
         @parameter
         fn test_fn():
             attention_naive(out, Q, K, V, rt)
-
-        attention_naive(out, Q, K, V, rt)
-        @parameter
-        if DEBUG_PRINT_RES:
-            print("Mojo res:")
-            out.dump()
 
         # Benchmark Mojo
         let usecs_mojo = Float64(Benchmark().run[test_fn]()) / 1_000

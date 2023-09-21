@@ -4,7 +4,7 @@ from algorithm import vectorize, parallelize
 from sys.info import simdwidthof
 from runtime.llcl import Runtime
 
-from matrix import Matrix, matmul, matmul_transposed
+from matrix import Matrix, matmul, transpose, matmul_transposed
 
 
 alias nelts = simdwidthof[DType.float32]()
@@ -24,13 +24,13 @@ struct AttentionParams:
 #     let d = Q.cols
 #     var tmp = Matrix(N, N)
 #     tmp.zero()
-#     matmul_transposed(Q, K, tmp)
+#     matmul_transposed(tmp, Q, K)
 #     # softmax[1](tmp, tmp) 
 #     softmax_naive(tmp, tmp) 
-#     matmul(tmp, V, out)
+#     matmul(out, tmp, V)
 
 
-fn attention_naive(inout out: Matrix, Q: Matrix, K: Matrix, V: Matrix, rt: Runtime):
+fn attention_naive(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, rt: Runtime):
     # Calculate "out = softmax(Q * K^T) * V"
     # 
     # Args: 
@@ -40,12 +40,17 @@ fn attention_naive(inout out: Matrix, Q: Matrix, K: Matrix, V: Matrix, rt: Runti
     #   V: Matrix (N, d)
     let N = Q.rows
     let d = Q.cols
-    var tmp = Matrix(N, N)
-    tmp.zero()
-    matmul_transposed(Q, K, tmp)
-    # softmax[1](tmp, tmp) 
-    softmax_naive(tmp, tmp, rt) 
-    matmul(tmp, V, out)
+
+    var QK = Matrix(N, N)
+    QK.zero()
+    matmul_transposed(QK, Q, K)
+    # let K_T = Matrix(d, N)
+    # transpose(K_T, K, rt)
+    # matmul(QK, Q, K_T, rt)
+
+    # softmax[1](QK, QK) 
+    softmax_naive(QK, QK, rt) 
+    matmul(out, QK, V, rt)
      
 
 fn softmax(inout out: Matrix, inp: Matrix, rt: Runtime):
@@ -61,6 +66,7 @@ fn softmax(inout out: Matrix, inp: Matrix, rt: Runtime):
     vectorize[nelts, _row_max](inp.cols)
     # TODO
     
+
 fn softmax_naive(inout out: Matrix, inp: Matrix, rt: Runtime):
     @parameter
     fn softmax_(y: Int):
@@ -80,7 +86,7 @@ fn softmax_naive(inout out: Matrix, inp: Matrix, rt: Runtime):
             out[y, x] /= sum
     
     parallelize[softmax_](rt, inp.rows)
-    
+
 
 fn softmax_naive(inout out: Matrix, inp: Matrix):
     for y in range(inp.rows):
@@ -97,11 +103,6 @@ fn softmax_naive(inout out: Matrix, inp: Matrix):
             sum += e_x
         for x in range(inp.cols):
             out[y, x] /= sum
-
-
-# @parameter
-# fn parallelize_across_rows(row_fn: fn(Int) -> None, rows: Int, rt: Runtime):
-#     parallelize[row_fn](rt, rows)
 
 
 fn my_exp(m: Matrix, rt: Runtime):

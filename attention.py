@@ -10,9 +10,9 @@ def attention(Q, K, V):
     """
     QK = Q @ K.T
     max_QK = np.amax(QK, axis=-1, keepdims=True)
-    P = np.exp(QK - max_QK)
-    P /= P.sum(axis=-1, keepdims=True)
-    O = P @ V
+    S = np.exp(QK - max_QK)
+    S /= S.sum(axis=-1, keepdims=True)
+    O = S @ V
     return O
 
 def benchmark_attention_python(Q, K, V, print_res=False):

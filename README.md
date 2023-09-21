@@ -11,3 +11,5 @@ Model name: Intel(R) Core(TM) i7-13700HX CPU @ 3.70GHz
 ```
 
 ...
+
+Mojo baseline:  341599.087 us

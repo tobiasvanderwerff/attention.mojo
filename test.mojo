@@ -6,7 +6,7 @@ from testing import assert_true
 from runtime.llcl import Runtime
 
 from attention import attention_naive
-from matrix import Matrix
+from matrix import Matrix, transpose
 
 
 # Test for equality between the Mojo and Python implementation of attention.
@@ -21,7 +21,9 @@ def np_to_matrix(inout m_mojo: Matrix, borrowed m_np: PythonObject, size: Int) -
 
 fn main() raises:
     let N = 256
-    let d = 256
+    let d = 100
+    # let N = 3
+    # let d = 4
 
     let np = Python.import_module("numpy")
     if not np:

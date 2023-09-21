@@ -1,8 +1,12 @@
 from sys.info import simdwidthof
 from random import rand
 from memory.memory import memset_zero
+from algorithm import vectorize, parallelize
+from runtime.llcl import Runtime
 
 # alias f32 = DType.float32
+
+alias nelts = simdwidthof[DType.float32]()
 
 # TODO: try out the built-in Tensor type instead of a custom Matrix struct
 
@@ -71,28 +75,43 @@ struct Matrix:
         self.data.free()
 
 
-fn matmul(A: Matrix, B: Matrix, inout C: Matrix):
+fn matmul(inout C: Matrix, A: Matrix, B: Matrix):
     # C = A @ B
-    # C.zero()
     for m in range (A.rows):
-        for n in range(B.cols):
-            for k in range(A.cols):
+        for k in range(A.cols):
+            for n in range(C.cols):
                 C[m, n] += A[m, k] * B[k, n]
 
-fn matmul_transposed(A: Matrix, B: Matrix, inout C: Matrix):
+
+fn matmul(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
+    matmul_parallelized(C, A, B, rt)
+
+
+fn matmul_parallelized(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
+    @parameter
+    fn calc_row(m: Int):
+        for k in range(A.cols):
+            @parameter
+            fn dot[nelts: Int](n: Int):
+                C.store[nelts](m, n, C.load[nelts](m, n) + A[m, k] * B.load[nelts](k, n))
+            vectorize[nelts, dot](C.cols)
+    parallelize[calc_row](rt, C.rows) 
+
+
+fn matmul_transposed(inout C: Matrix, A: Matrix, B: Matrix):
     # C = A @ B.T
-    # C.zero()
     for m in range (A.rows):
         for n in range(B.rows):
             for k in range(A.cols):
                 C[m, n] += A[m, k] * B[n, k]
 
 
-fn main() raises:
-    var m = Matrix(10, 10)
-    m.fill(1)
-    # print_matrix(m)
-    print("Element (1, 1) of matrix:", m[1, 1])
-
-    var C = Matrix(m.rows, m.cols)
-    matmul(m, m, C)
+fn transpose(out_m: Matrix, in_m: Matrix, rt: Runtime):
+    # B = A^T
+    @parameter
+    fn row_fn(m: Int):
+        @parameter 
+        fn col_fn[nelts: Int](n: Int):
+            out_m.store[nelts](n, m, in_m.load[nelts](m, n))
+        vectorize[nelts, col_fn](in_m.cols)
+    parallelize[row_fn](rt, in_m.rows)
