@@ -11,11 +11,12 @@ Model name: Intel(R) Core(TM) i7-13700HX CPU @ 3.70GHz
 ```
 
 
-```
-N = d = 512
-```
+Benchmark results for the following parameters:
+
+- N = 512
+- d = 512
 
 |              | time (us) |
 |--------------|-----------|
 | Python/Numpy | 12629     |
-| Mojo         | 9044      |
+| Mojo         | 7665      |

@@ -114,15 +114,22 @@ fn matmul_transposed(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
 
 fn matmul_parallelized_transposed(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
     # C = A * B^T
-    # TODO: this implementation is slow.
     @parameter
     fn calc_row(m: Int):
         for n in range(C.cols):
+            var tmp = SIMD[DType.float32, nelts](0)
+
             @parameter
-            fn dot[nelts: Int](k: Int):
-                C.store[1](m, n, C.load[1](m, n) 
-                           + (A.load[nelts](m, k) * B.load[nelts](n, k)).reduce_add())
+            fn dot[nelts_: Int](k: Int):
+                if nelts_ < nelts:  # take care of tail elements
+                    tmp[0] += (A.load[nelts_](m, k) * B.load[nelts_](n, k)).reduce_add()
+                else: 
+                    tmp += A.load[nelts](m, k) * B.load[nelts](n, k)
+                # C.store[1](m, n, C.load[1](m, n) 
+                #            + (A.load[nelts](m, k) * B.load[nelts](n, k)).reduce_add())
             vectorize[nelts, dot](A.cols)
+            # C[m, n] = tmp.reduce_add()
+            C.store[1](m, n, tmp.reduce_add())
     parallelize[calc_row](rt, C.rows) 
 
 
