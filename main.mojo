@@ -18,6 +18,31 @@ def np_to_matrix(inout m_mojo: Matrix, borrowed m_np: PythonObject, size: Int) -
         m_mojo[i] = data[i].to_float64().cast[DType.float32]()
 
 
+@always_inline
+fn benchmark_attention_mojo(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, usecs_python: Float64):
+    with Runtime() as rt:
+        @parameter
+        if DEBUG_PRINT_RES:
+            attention_naive(out, Q, K, V, rt)
+            print("Mojo res:")
+            out.dump()
+
+        @always_inline
+        @parameter
+        fn wrapper():
+            attention_naive(out, Q, K, V, rt)
+
+        # Benchmark Mojo
+        let usecs_mojo = Float64(Benchmark().run[wrapper]()) / 1_000
+
+        print("\nNumpy/Python:\t", usecs_python, "us")
+        print("Mojo:\t\t", usecs_mojo, "us")
+
+        # The line below is necessary to prevent the matrices from being freed
+        # before the benchmark run, which would otherwise lead to the program crashing.
+        _ = (out, Q, K, V)
+
+
 fn main() raises:
     let np = Python.import_module("numpy")
 
@@ -59,27 +84,3 @@ fn main() raises:
     # let t = time_function[py_att_mod.attention(Q, K, V)]()
     # print("Time spent in function:", t, "ns")
 
-
-@always_inline
-fn benchmark_attention_mojo(inout out: Matrix, Q: Matrix, K: Matrix, V: Matrix, usecs_python: Float64):
-    with Runtime() as rt:
-        @parameter
-        if DEBUG_PRINT_RES:
-            attention_naive(out, Q, K, V, rt)
-            print("Mojo res:")
-            out.dump()
-
-        @always_inline
-        @parameter
-        fn test_fn():
-            attention_naive(out, Q, K, V, rt)
-
-        # Benchmark Mojo
-        let usecs_mojo = Float64(Benchmark().run[test_fn]()) / 1_000
-
-        print("\nNumpy/Python:\t", usecs_python, "us")
-        print("Mojo:\t\t", usecs_mojo, "us")
-
-        # The line below is necessary to prevent the matrices from being freed
-        # before the benchmark run, which would otherwise lead to the program crashing.
-        _ = (out, Q, K, V)

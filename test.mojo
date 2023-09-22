@@ -19,12 +19,7 @@ def np_to_matrix(inout m_mojo: Matrix, borrowed m_np: PythonObject, size: Int) -
         m_mojo[i] = data[i].to_float64().cast[DType.float32]()
 
 
-fn main() raises:
-    let N = 256
-    let d = 100
-    # let N = 3
-    # let d = 4
-
+fn test(N: Int, d: Int) raises:
     let np = Python.import_module("numpy")
     if not np:
         print("Unable to load 'numpy' module")
@@ -62,6 +57,7 @@ fn main() raises:
     # possible within a "raises" function.
     _compare(out_py, out, Q, K, V)
 
+
 fn _compare(out_py: Matrix, inout out: Matrix, Q: Matrix, K: Matrix, V: Matrix):
     # Call Mojo impl
     with Runtime() as rt:
@@ -77,3 +73,14 @@ fn _compare(out_py: Matrix, inout out: Matrix, Q: Matrix, K: Matrix, V: Matrix):
                     return 
 
         print("TEST PASSED")
+
+
+fn main() raises:
+    var N = 256
+    var d = 128
+    test(N, d)
+
+    N = 256
+    d = 100
+    test(N, d)
+
