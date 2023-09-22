@@ -76,7 +76,7 @@ struct Matrix:
 
 
 fn matmul(inout C: Matrix, A: Matrix, B: Matrix):
-    # C = A @ B
+    """C = A @ B (naive implementation)."""
     for m in range (A.rows):
         for k in range(A.cols):
             for n in range(C.cols):
@@ -99,9 +99,7 @@ fn matmul_parallelized(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
 
 
 fn matmul_transposed(inout C: Matrix, A: Matrix, B: Matrix):
-    # TODO: for some reason this doesn't work if I parallelize it in the same
-    # way as done for the "matmul" function. Try to figure out why.
-    # C = A @ B.T
+    """C = A @ B.T (naive implementation)."""
     for m in range (A.rows):
         for n in range(B.rows):
             for k in range(A.cols):
@@ -113,7 +111,7 @@ fn matmul_transposed(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
 
 
 fn matmul_parallelized_transposed(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
-    # C = A * B^T
+    """C = A @ B.T."""
     @parameter
     fn calc_row(m: Int):
         for n in range(C.cols):
@@ -125,16 +123,13 @@ fn matmul_parallelized_transposed(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
                     tmp[0] += (A.load[nelts_](m, k) * B.load[nelts_](n, k)).reduce_add()
                 else: 
                     tmp += A.load[nelts](m, k) * B.load[nelts](n, k)
-                # C.store[1](m, n, C.load[1](m, n) 
-                #            + (A.load[nelts](m, k) * B.load[nelts](n, k)).reduce_add())
             vectorize[nelts, dot](A.cols)
-            # C[m, n] = tmp.reduce_add()
             C.store[1](m, n, tmp.reduce_add())
     parallelize[calc_row](rt, C.rows) 
 
 
 fn transpose(out_m: Matrix, in_m: Matrix, rt: Runtime):
-    # B = A^T
+    """B = A^T."""
     @parameter
     fn row_fn(m: Int):
         @parameter 

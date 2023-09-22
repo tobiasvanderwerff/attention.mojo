@@ -19,7 +19,7 @@ def np_to_matrix(inout m_mojo: Matrix, borrowed m_np: PythonObject, size: Int) -
 
 
 @always_inline
-fn benchmark_attention_mojo(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, usecs_python: Float64):
+fn benchmark_attention(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, usecs_python: Float64):
     with Runtime() as rt:
         @parameter
         if DEBUG_PRINT_RES:
@@ -83,7 +83,7 @@ fn main() raises:
         print("Unable to load 'attention' module")
         return
 
-    benchmark_attention_mojo(out, Q, K, V, usecs_python)
+    benchmark_attention(out, Q, K, V, usecs_python)
 
     # let t = time_function[py_att_mod.attention(Q, K, V)]()
     # print("Time spent in function:", t, "ns")

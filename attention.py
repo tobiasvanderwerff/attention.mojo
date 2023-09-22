@@ -33,9 +33,9 @@ def benchmark_attention_python(Q, K, V, print_res=False):
 #     return usecs
 
 
-if __name__ == "__main__":
-    N = 32
-    d = 8
-
-    usecs_python = benchmark_attention_python(N, d)
-    print(usecs_python, "us")
+# if __name__ == "__main__":
+#     N = 32
+#     d = 8
+#
+#     usecs_python = benchmark_attention_python(N, d)
+#     print(usecs_python, "us")

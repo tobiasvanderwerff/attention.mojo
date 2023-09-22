@@ -31,24 +31,21 @@ struct AttentionParams:
 
 
 fn attention_naive(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, rt: Runtime):
-    # Calculate "out = softmax(Q * K^T) * V"
-    # 
-    # Args: 
-    #   out: Matrix (N, d)
-    #   Q: Matrix (N, d)
-    #   K: Matrix (N, d)
-    #   V: Matrix (N, d)
+    """ Calculate 'out = softmax(Q * K^T) * V'.
+    
+    Args: 
+      out: Matrix (N, d)
+      Q: Matrix (N, d)
+      K: Matrix (N, d)
+      V: Matrix (N, d)
+    """
     let N = Q.rows
     let d = Q.cols
 
     var QK = Matrix(N, N)
     QK.zero()
     matmul_transposed(QK, Q, K, rt)
-    # let K_T = Matrix(d, N)
-    # transpose(K_T, K, rt)
-    # matmul(QK, Q, K_T, rt)
 
-    # softmax[1](QK, QK) 
     softmax_naive(QK, QK, rt) 
     matmul(out, QK, V, rt)
      
@@ -103,17 +100,6 @@ fn softmax_naive(inout out: Matrix, inp: Matrix):
             sum += e_x
         for x in range(inp.cols):
             out[y, x] /= sum
-
-
-fn my_exp(m: Matrix, rt: Runtime):
-    @parameter
-    fn calc_row(y: Int):
-        @parameter
-        fn v_exp[nelts: Int](x: Int):
-            m.store[nelts](y, x, exp(m.load[nelts](y, x)))
-
-        vectorize[nelts, v_exp](m.cols)
-    parallelize[calc_row](rt, m.rows)
     
 
 fn main():
@@ -131,15 +117,12 @@ fn main():
     var res = Matrix(N, d)
 
     Q.fill(1)
-    # K.fill(1)
+    K.fill(1)
     # K[0, 0] = 2
-    # V.fill(3)
-    # res.zero()
+    V.fill(3)
+    res.zero()
 
     with Runtime() as rt:
 
-        # attention_naive(res, Q, K, V)
-        # res.dump()
-
-        my_exp(Q, rt)
-        Q.dump()
+        attention_naive(res, Q, K, V, rt)
+        res.dump()
