@@ -51,6 +51,10 @@ fn main() raises:
     # let N = 3
     # let d = 2
 
+    print("Benchmarking using the following parameters:")
+    print("N =", N)
+    print("d =", d, "\n")
+
     let Q_np = np.random.rand(N, d)
     let K_np = np.random.rand(N, d)
     let V_np = np.random.rand(N, d)

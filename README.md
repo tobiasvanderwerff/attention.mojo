@@ -17,5 +17,5 @@ N = d = 512
 
 |              | time (us) |
 |--------------|-----------|
-| Python/Numpy | 8826      |
-| Mojo         | 7099      |
+| Python/Numpy | 12629     |
+| Mojo         | 9044      |

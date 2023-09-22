@@ -122,7 +122,7 @@ fn matmul_parallelized_transposed(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
             fn dot[nelts: Int](k: Int):
                 C.store[1](m, n, C.load[1](m, n) 
                            + (A.load[nelts](m, k) * B.load[nelts](n, k)).reduce_add())
-            vectorize[1, dot](A.cols)
+            vectorize[nelts, dot](A.cols)
     parallelize[calc_row](rt, C.rows) 
 
 
