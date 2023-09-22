@@ -108,6 +108,24 @@ fn matmul_transposed(inout C: Matrix, A: Matrix, B: Matrix):
                 C[m, n] += A[m, k] * B[n, k]
 
 
+fn matmul_transposed(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
+    matmul_parallelized_transposed(C, A, B, rt)
+
+
+fn matmul_parallelized_transposed(C: Matrix, A: Matrix, B: Matrix, rt: Runtime):
+    # C = A * B^T
+    # TODO: this implementation is slow.
+    @parameter
+    fn calc_row(m: Int):
+        for n in range(C.cols):
+            @parameter
+            fn dot[nelts: Int](k: Int):
+                C.store[1](m, n, C.load[1](m, n) 
+                           + (A.load[nelts](m, k) * B.load[nelts](n, k)).reduce_add())
+            vectorize[1, dot](A.cols)
+    parallelize[calc_row](rt, C.rows) 
+
+
 fn transpose(out_m: Matrix, in_m: Matrix, rt: Runtime):
     # B = A^T
     @parameter

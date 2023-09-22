@@ -43,7 +43,7 @@ fn attention_naive(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, rt: Runtime):
 
     var QK = Matrix(N, N)
     QK.zero()
-    matmul_transposed(QK, Q, K)
+    matmul_transposed(QK, Q, K, rt)
     # let K_T = Matrix(d, N)
     # transpose(K_T, K, rt)
     # matmul(QK, Q, K_T, rt)
