@@ -46,41 +46,39 @@ fn attention_naive(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, rt: Runtime):
     QK.zero()
     matmul_transposed(QK, Q, K, rt)
 
-    softmax_naive(QK, QK, rt) 
+    softmax(QK, QK, rt) 
     matmul(out, QK, V, rt)
-     
-
-fn softmax(inout out: Matrix, inp: Matrix, rt: Runtime):
-
-    var max_val: Float32 = -1e9
-
-    @parameter
-    fn _row_max[nelts_: Int](i: Int):
-        let m = inp.data.simd_load[nelts_](i).reduce_max()
-        if m > max_val:
-            max_val = m
-
-    vectorize[nelts, _row_max](inp.cols)
-    # TODO
     
 
-fn softmax_naive(inout out: Matrix, inp: Matrix, rt: Runtime):
+fn softmax(inout out: Matrix, inp: Matrix, rt: Runtime):
     @parameter
     fn softmax_(y: Int):
         # TODO: CONTINUE HERE - vectorize/parallelize these inner loops
-        var sum: Float32 = 0.0
+
         var max_val: Float32 = -1e9  # TODO: how reliable is this?
-        for xv in range(0, inp.cols, nelts):
-            let max_val_v = inp.load[nelts](y, xv).reduce_max()
-            if max_val_v > max_val:
-                max_val = max_val_v
-        for x in range(inp.cols):
-            # out.store(y, x, exp(inp.load[nelts](y, x)))  # vectorized
-            let e_x = exp(inp[y, x] - max_val)
-            out[y, x] = e_x
-            sum += e_x
-        for x in range(inp.cols):
-            out[y, x] /= sum
+
+        @parameter
+        fn _max[nelts: Int](x: Int):
+            let m = inp.load[nelts](y, x).reduce_max()
+            if m > max_val:
+                max_val = m
+        vectorize[nelts, _max](inp.cols)
+
+        var tmp = SIMD[DType.float32, nelts](0)
+
+        @parameter
+        fn _exp[nelts_: Int](x: Int):
+            let v = exp(inp.load[nelts](y, x) - max_val)
+            out.store[nelts](y, x, v)
+            tmp += v
+        vectorize[nelts, _exp](inp.cols)
+
+        var sum: Float32 = tmp.reduce_add()
+
+        @parameter
+        fn _div[nelts_: Int](x: Int):
+            out.store[nelts](y, x, out.load[nelts](y, x) / sum)
+        vectorize[nelts, _div](inp.cols)
     
     parallelize[softmax_](rt, inp.rows)
 

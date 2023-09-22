@@ -19,4 +19,4 @@ Benchmark results for the following parameters:
 |              | time (us) |
 |--------------|-----------|
 | Python/Numpy | 12629     |
-| Mojo         | 7665      |
+| Mojo         | 7100      |
