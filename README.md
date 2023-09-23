@@ -11,12 +11,11 @@ Model name: Intel(R) Core(TM) i7-13700HX CPU @ 3.70GHz
 ```
 
 
-Benchmark results for the following parameters:
+Time in microseconds (us):
 
-- N = 512
-- d = 512
 
-|              | time (us) |
-|--------------|-----------|
-| Python/Numpy | 12629     |
-| Mojo         | 7100      |
+|                    | Numpy/Python  | Mojo          | Speedup vs. Numpy |
+| ------------------ | ------------- | ------------- | ----------------- |
+| N=64,d=64          | 520           | 3791          | 0.13x             |
+| N=512,d=512        | 12629         | 7100          | 1.8x              |
+| N=1024,d=256       | 31835         | 11192         | 2.8x              |

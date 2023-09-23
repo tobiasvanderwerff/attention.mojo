@@ -4,7 +4,7 @@ from time import time_function
 from testing import assert_true
 from runtime.llcl import Runtime
 
-from attention import attention_naive
+from attention import attention
 from matrix import Matrix
 
 
@@ -23,14 +23,14 @@ fn benchmark_attention(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, usecs_pytho
     with Runtime() as rt:
         @parameter
         if DEBUG_PRINT_RES:
-            attention_naive(out, Q, K, V, rt)
+            attention(out, Q, K, V, rt)
             print("Mojo res:")
             out.dump()
 
         @always_inline
         @parameter
         fn wrapper():
-            attention_naive(out, Q, K, V, rt)
+            attention(out, Q, K, V, rt)
 
         # Benchmark Mojo
         let usecs_mojo = Float64(Benchmark().run[wrapper]()) / 1_000
@@ -43,15 +43,10 @@ fn benchmark_attention(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, usecs_pytho
         _ = (out, Q, K, V)
 
 
-fn main() raises:
+fn run(N: Int, d: Int) raises:
     let np = Python.import_module("numpy")
 
-    let N = 512
-    let d = 512
-    # let N = 3
-    # let d = 2
-
-    print("Benchmarking using the following parameters:")
+    print("\nBenchmarking using the following parameters:")
     print("N =", N)
     print("d =", d, "\n")
 
@@ -88,3 +83,20 @@ fn main() raises:
     # let t = time_function[py_att_mod.attention(Q, K, V)]()
     # print("Time spent in function:", t, "ns")
 
+
+fn main() raises:
+    var N = 64
+    var d = 64
+    run(N, d)
+
+    N = 512
+    d = 512
+    run(N, d)
+
+    N = 1024
+    d = 256
+    run(N, d)
+
+    # N = 1024
+    # d = 1024
+    # run(N, d)
