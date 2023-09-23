@@ -33,6 +33,13 @@ written in high performance C code and could in theory be used to implement a
 relatively fast implementation of multi-head attention. Obviously you would
 ideally use a GPU to run a highly parallel operation like attention, but within
 the CPU domain there are also options for parallization and vectorization, e.g.
-using SIMD. I'm curious how Mojo's language features like easy vectorization,
-pararallization, autotuning, etc., fare on CPU against a highly optimized
-library like Numpy.
+by using vector operations. I'm curious how Mojo's language features like
+easy vectorization, pararallization, autotuning, etc., fare on CPU against a
+highly optimized library like Numpy.
+
+One limitation of this comparison is that it's unclear how much overhead Python itself is adding, e.g. when making consecutive Numpy calls.
+
+
+## TODO
+- [ ] See if `autotune` and `search` can be used to make useful hardware-specific optimizations at compile time. I.e. write multiple implementations (e.g. tiling or not) and pick the best one for the hardware it's running on by runnning benchmarks for all of them at compile time.
+- [ ] Investigate: what lessons can be drawn from [Flash Attention](https://arxiv.org/pdf/2205.14135.pdf) for making CPU implementations of attention more io-aware?

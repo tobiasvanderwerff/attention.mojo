@@ -11,26 +11,14 @@ alias nelts = simdwidthof[DType.float32]()
 
 
 @value
+@register_passable("trivial")
 struct AttentionParams:
     var seq_len: Int
     var num_heads: Int
 
 
 
-# fn attention_naive(inout out: Matrix, Q: Matrix, K: Matrix, V: Matrix):
-#     # Same as function below but without runtime 
-#     # TODO: come up with a better way to do this
-#     let N = Q.rows
-#     let d = Q.cols
-#     var tmp = Matrix(N, N)
-#     tmp.zero()
-#     matmul_transposed(tmp, Q, K)
-#     # softmax[1](tmp, tmp) 
-#     softmax_naive(tmp, tmp) 
-#     matmul(out, tmp, V)
-
-
-fn attention_naive(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, rt: Runtime):
+fn attention(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, rt: Runtime):
     """ Calculate 'out = softmax(Q * K^T) * V'.
     
     Args: 
@@ -45,7 +33,6 @@ fn attention_naive(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, rt: Runtime):
     var QK = Matrix(N, N)
     QK.zero()
     matmul_transposed(QK, Q, K, rt)
-
     softmax(QK, QK, rt) 
     matmul(out, QK, V, rt)
     
@@ -53,7 +40,7 @@ fn attention_naive(out: Matrix, Q: Matrix, K: Matrix, V: Matrix, rt: Runtime):
 fn softmax(inout out: Matrix, inp: Matrix, rt: Runtime):
     @parameter
     fn softmax_(y: Int):
-        # TODO: CONTINUE HERE - vectorize/parallelize these inner loops
+        # TODO: CONTINUE HERE - see what optimizations are still possible
 
         var max_val: Float32 = -1e9  # TODO: how reliable is this?
 
@@ -122,5 +109,5 @@ fn main():
 
     with Runtime() as rt:
 
-        attention_naive(res, Q, K, V, rt)
+        attention(res, Q, K, V, rt)
         res.dump()

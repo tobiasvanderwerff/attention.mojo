@@ -5,7 +5,7 @@ from time import time_function
 from testing import assert_true
 from runtime.llcl import Runtime
 
-from attention import attention_naive
+from attention import attention
 from matrix import Matrix, transpose
 
 
@@ -61,7 +61,7 @@ fn test(N: Int, d: Int) raises:
 fn _compare(out_py: Matrix, inout out: Matrix, Q: Matrix, K: Matrix, V: Matrix):
     # Call Mojo impl
     with Runtime() as rt:
-        attention_naive(out, Q, K, V, rt)
+        attention(out, Q, K, V, rt)
 
         # Compare the two results
         for y in range(out.rows):
